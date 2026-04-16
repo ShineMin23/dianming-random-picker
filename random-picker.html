@@ -3,117 +3,404 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎲 随机课堂点名</title>
+    <title>点名剧场</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,500;6..96,700&family=Noto+Serif+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-main: #0b1016;
+            --bg-deep: #06090d;
+            --panel: rgba(17, 24, 33, 0.86);
+            --panel-soft: rgba(255, 248, 235, 0.05);
+            --line: rgba(239, 224, 194, 0.16);
+            --line-strong: rgba(239, 224, 194, 0.32);
+            --text: #f5ecdc;
+            --muted: #b8aa90;
+            --accent: #d78656;
+            --accent-strong: #efb17d;
+            --secondary: #86b5ae;
+            --shadow: 0 30px 90px rgba(0, 0, 0, 0.45);
+        }
+
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+        }
+
+        html {
+            color-scheme: dark;
         }
 
         body {
-            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
+            min-height: 100svh;
+            font-family: "Noto Serif SC", serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(215, 134, 86, 0.18), transparent 30%),
+                radial-gradient(circle at 85% 15%, rgba(134, 181, 174, 0.14), transparent 24%),
+                radial-gradient(circle at 50% 100%, rgba(215, 134, 86, 0.1), transparent 36%),
+                linear-gradient(145deg, #0d131b 0%, #080b10 55%, #05070a 100%);
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        body::before {
+            background:
+                repeating-linear-gradient(
+                    90deg,
+                    transparent 0,
+                    transparent 68px,
+                    rgba(255, 255, 255, 0.02) 68px,
+                    rgba(255, 255, 255, 0.02) 69px
+                ),
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0,
+                    transparent 68px,
+                    rgba(255, 255, 255, 0.02) 68px,
+                    rgba(255, 255, 255, 0.02) 69px
+                );
+            opacity: 0.36;
+        }
+
+        body::after {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 24%, transparent 76%, rgba(0, 0, 0, 0.2)),
+                radial-gradient(circle at center, transparent 55%, rgba(0, 0, 0, 0.34));
+        }
+
+        .scene {
+            position: relative;
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 56px 0 72px;
+        }
+
+        .masthead {
+            position: relative;
+            margin-bottom: 34px;
+            padding: 28px 30px 10px;
+            animation: fadeUp 0.9s ease;
+        }
+
+        .masthead::after {
+            content: "";
+            position: absolute;
+            right: 28px;
+            top: 20px;
+            width: 120px;
+            height: 120px;
+            border-top: 1px solid rgba(239, 224, 194, 0.2);
+            border-right: 1px solid rgba(239, 224, 194, 0.2);
+            opacity: 0.8;
+        }
+
+        .kicker {
+            display: inline-flex;
             align-items: center;
-            padding: 20px;
+            gap: 10px;
+            margin-bottom: 14px;
+            color: var(--accent-strong);
+            font-size: 12px;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
         }
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            padding: 40px;
-            max-width: 600px;
-            width: 100%;
+        .kicker::before {
+            content: "";
+            width: 42px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent-strong));
         }
 
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-            font-size: 2em;
+        .masthead h1 {
+            max-width: 760px;
+            font-size: clamp(2.7rem, 7vw, 5.3rem);
+            line-height: 1.04;
+            letter-spacing: 0.06em;
+            font-weight: 900;
+            text-wrap: balance;
         }
 
-        .input-section {
-            margin-bottom: 30px;
+        .masthead p {
+            max-width: 700px;
+            margin-top: 14px;
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.9;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: minmax(320px, 0.95fr) minmax(360px, 1.05fr);
+            gap: 26px;
+            align-items: start;
+        }
+
+        .panel {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 28px;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 18%),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)),
+                var(--panel);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(16px);
+        }
+
+        .panel::before {
+            content: "";
+            position: absolute;
+            inset: 14px;
+            border-radius: 22px;
+            border: 1px solid rgba(239, 224, 194, 0.08);
+            pointer-events: none;
+        }
+
+        .panel-head {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 30px 30px 0;
+        }
+
+        .eyebrow {
+            color: var(--secondary);
+            font-size: 11px;
+            letter-spacing: 0.24em;
+            text-transform: uppercase;
+        }
+
+        .panel-head h2,
+        .history-head h3 {
+            font-size: 1.55rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .panel-head p {
+            color: var(--muted);
+            line-height: 1.8;
+            font-size: 14px;
+        }
+
+        .roster-panel {
+            animation: fadeUp 0.9s ease 0.08s both;
+        }
+
+        .roster-body {
+            position: relative;
+            z-index: 1;
+            padding: 22px 30px 30px;
         }
 
         label {
-            display: block;
-            margin-bottom: 10px;
-            color: #555;
-            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 12px;
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
         }
 
         textarea {
             width: 100%;
-            height: 120px;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
+            min-height: 470px;
+            padding: 22px 20px;
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            background:
+                linear-gradient(180deg, rgba(255, 248, 235, 0.05), rgba(255, 248, 235, 0.02)),
+                rgba(7, 10, 14, 0.78);
+            color: var(--text);
+            font: 500 16px/1.95 "Noto Serif SC", serif;
             resize: vertical;
-            transition: border-color 0.3s;
+            transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
         }
 
         textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: rgba(215, 134, 86, 0.6);
+            box-shadow: 0 0 0 4px rgba(215, 134, 86, 0.12);
+            transform: translateY(-1px);
         }
 
-        .hint {
+        .roster-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            margin-top: 14px;
+            color: var(--muted);
             font-size: 12px;
-            color: #999;
-            margin-top: 5px;
+            line-height: 1.8;
         }
 
-        .display-section {
-            text-align: center;
-            margin: 30px 0;
+        .roster-note {
+            max-width: 380px;
         }
 
-        .result {
-            font-size: 4em;
-            font-weight: bold;
-            color: #667eea;
-            min-height: 120px;
+        .roster-token {
+            padding: 8px 12px;
+            border: 1px solid rgba(134, 181, 174, 0.22);
+            border-radius: 999px;
+            background: rgba(134, 181, 174, 0.08);
+            color: var(--secondary);
+            white-space: nowrap;
+        }
+
+        .stage-panel {
+            display: grid;
+            gap: 22px;
+            animation: fadeUp 0.9s ease 0.16s both;
+        }
+
+        .stage-shell {
+            position: relative;
+            padding: 30px;
+        }
+
+        .stage-shell::before,
+        .stage-shell::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .stage-shell::before {
+            top: -40px;
+            right: -10px;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(215, 134, 86, 0.2), transparent 68%);
+        }
+
+        .stage-shell::after {
+            bottom: -80px;
+            left: -40px;
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(134, 181, 174, 0.14), transparent 70%);
+        }
+
+        .stage-top {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 18px;
+            margin-bottom: 22px;
+        }
+
+        .stage-tag {
+            font-family: "Bodoni Moda", serif;
+            color: rgba(245, 236, 220, 0.75);
+            font-size: 12px;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+        }
+
+        .status-line {
+            max-width: 320px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.8;
+            text-align: right;
+        }
+
+        .result-frame {
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 15px;
-            margin-bottom: 20px;
-            transition: all 0.3s;
+            min-height: 320px;
+            padding: 34px;
+            border: 1px solid rgba(239, 224, 194, 0.18);
+            border-radius: 30px;
+            background:
+                radial-gradient(circle at top, rgba(239, 224, 194, 0.07), transparent 38%),
+                linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.22)),
+                rgba(6, 10, 14, 0.86);
+            overflow: hidden;
+        }
+
+        .result-frame::before {
+            content: "";
+            position: absolute;
+            inset: 18px;
+            border: 1px solid rgba(239, 224, 194, 0.08);
+            border-radius: 22px;
+        }
+
+        .result-frame.live::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.08), transparent 70%);
+            animation: scan 1.3s linear infinite;
+        }
+
+        .result {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 180px;
+            width: 100%;
+            padding: 18px 20px;
+            text-align: center;
+            color: var(--text);
+            font-size: clamp(2.9rem, 7vw, 5.5rem);
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            line-height: 1.18;
+            word-break: break-word;
+            text-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
         }
 
         .result.rolling {
-            animation: pulse 0.1s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
+            color: var(--accent-strong);
+            animation: stagePulse 0.12s linear infinite alternate;
         }
 
         .btn {
+            position: relative;
+            z-index: 1;
             width: 100%;
-            padding: 18px;
-            font-size: 1.3em;
-            font-weight: bold;
-            color: white;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin-top: 22px;
+            padding: 18px 22px;
             border: none;
-            border-radius: 12px;
+            border-radius: 20px;
+            background:
+                linear-gradient(135deg, #f0b17c 0%, #d78355 38%, #8f4f32 100%);
+            color: #120f0d;
+            font: 700 1.08rem/1 "Noto Serif SC", serif;
+            letter-spacing: 0.12em;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
+            box-shadow: 0 22px 44px rgba(215, 134, 86, 0.24);
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 28px 56px rgba(215, 134, 86, 0.28);
+            filter: saturate(1.05);
         }
 
         .btn:active {
@@ -121,172 +408,379 @@
         }
 
         .btn:disabled {
-            opacity: 0.7;
             cursor: not-allowed;
+            opacity: 0.78;
         }
 
         .stats {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
         }
 
-        .stat-item {
-            text-align: center;
+        .stat-card {
+            position: relative;
+            padding: 22px 20px;
+            border-radius: 22px;
+            border: 1px solid var(--line);
+            background: var(--panel-soft);
+            overflow: hidden;
         }
 
-        .stat-value {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #667eea;
+        .stat-card::after {
+            content: "";
+            position: absolute;
+            inset: auto 0 0 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(239, 224, 194, 0.25), transparent);
         }
 
         .stat-label {
-            font-size: 0.9em;
-            color: #999;
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            margin-top: 14px;
+            font-family: "Bodoni Moda", serif;
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 700;
+            color: var(--text);
         }
 
         .history {
-            margin-top: 20px;
-            max-height: 150px;
-            overflow-y: auto;
+            padding: 26px 26px 28px;
         }
 
-        .history-title {
-            font-size: 0.9em;
-            color: #666;
-            margin-bottom: 10px;
+        .history-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .history-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
         }
 
         .history-item {
-            display: inline-block;
-            padding: 5px 12px;
-            margin: 3px;
-            background: #f0f0f0;
-            border-radius: 20px;
-            font-size: 0.9em;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border: 1px solid rgba(239, 224, 194, 0.14);
+            border-radius: 999px;
+            background: rgba(255, 248, 235, 0.06);
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .history-item em {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(215, 134, 86, 0.14);
+            color: var(--accent-strong);
+            font: 700 12px/1 "Bodoni Moda", serif;
+            font-style: normal;
+            letter-spacing: 0.08em;
         }
 
         .confetti {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
+            inset: 0;
             overflow: hidden;
-            z-index: 1000;
+            pointer-events: none;
+            z-index: 9;
         }
 
         .confetti-piece {
             position: absolute;
-            width: 10px;
-            height: 10px;
-            animation: fall 3s ease-out forwards;
+            width: 12px;
+            height: 12px;
+            opacity: 0;
+            animation: confettiFall 3.2s ease-out forwards;
         }
 
-        @keyframes fall {
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(18px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes stagePulse {
+            from {
+                transform: translateY(0) scale(1);
+                text-shadow: 0 12px 28px rgba(215, 134, 86, 0.26);
+            }
+            to {
+                transform: translateY(-3px) scale(1.015);
+                text-shadow: 0 18px 42px rgba(239, 177, 125, 0.46);
+            }
+        }
+
+        @keyframes scan {
+            from {
+                transform: translateX(-100%);
+            }
+            to {
+                transform: translateX(100%);
+            }
+        }
+
+        @keyframes confettiFall {
             0% {
-                transform: translateY(-100px) rotate(0deg);
+                transform: translateY(-140px) rotate(0deg) scale(0.8);
                 opacity: 1;
             }
             100% {
-                transform: translateY(100vh) rotate(720deg);
+                transform: translateY(100vh) rotate(760deg) scale(1.05);
                 opacity: 0;
+            }
+        }
+
+        @media (max-width: 980px) {
+            .scene {
+                width: min(100% - 24px, 760px);
+                padding: 36px 0 52px;
+            }
+
+            .board {
+                grid-template-columns: 1fr;
+            }
+
+            textarea {
+                min-height: 320px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .scene {
+                width: min(100% - 16px, 100%);
+            }
+
+            .masthead {
+                padding: 18px 10px 8px;
+                margin-bottom: 22px;
+            }
+
+            .masthead::after {
+                display: none;
+            }
+
+            .panel-head,
+            .roster-body,
+            .stage-shell,
+            .history {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            .stage-top,
+            .history-head,
+            .roster-meta {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .status-line {
+                max-width: none;
+                text-align: left;
+            }
+
+            .result-frame {
+                min-height: 250px;
+                padding: 20px;
+            }
+
+            .result {
+                font-size: clamp(2.25rem, 12vw, 3.8rem);
+                letter-spacing: 0.08em;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎲 随机课堂点名</h1>
+    <div class="scene">
+        <header class="masthead">
+            <div class="kicker">Roll Call Theatre</div>
+            <h1>把课堂点名，变成一次有仪式感的揭晓。</h1>
+            <p>名单在左侧静静候场，名字会在中央舞台逐步减速、最终落定。适合上课时快速抽点，也足够好看，值得直接投到大屏上。</p>
+        </header>
 
-        <div class="input-section">
-            <label for="names">学生名单</label>
-            <textarea id="names" placeholder="输入学生姓名，每行一个或逗号分隔&#10;例如：&#10;张三&#10;李四&#10;王五">张茜玥
-刘潇
-张欣悦
-王涵
-陶晨
-栗绍华
-林琪
-马玉佳
-王浩然
-张硕颀
-习雨阳
-胡俣
-李傲男
-姜鸣岐
-刘子怡
-张涛
-张羽瑶
-李紫薇
-陈宣羽
-刘越
-唐艺菡
-张清
-包力丹
-关雅丹
-曹然
-周嘉慧
-杨博语
-童佳
-黎苏瑶
-周洁
-贺亚雯
-朱冠臣
-潘潞娜</textarea>
-            <p class="hint">提示：支持换行或逗号、空格分隔姓名</p>
-        </div>
+        <main class="board">
+            <section class="panel roster-panel">
+                <div class="panel-head">
+                    <span class="eyebrow">Roster Input</span>
+                    <h2>学生名单</h2>
+                    <p>支持换行、英文逗号和中文逗号。你可以随时粘贴新名单，人数会自动更新。</p>
+                </div>
 
-        <div class="display-section">
-            <div class="result" id="result">???</div>
-            <button class="btn" id="startBtn" type="button">🎯 开始点名</button>
-        </div>
+                <div class="roster-body">
+                    <label for="names">本次候选名单</label>
+                    <textarea id="names" placeholder="输入学生姓名，每行一个或逗号分隔&#10;例如：&#10;张三&#10;李四&#10;王五">益西尼玛
+宋雨霏
+王璐祺
+刘竞泽
+李思雨
+高露
+金美娜
+上官鹏
+李屿
+石颖
+张子悦
+庄钰星
+刘彦宣
+刘心玥
+习婧
+袁思琪
+李嘉仪
+姜懿轩
+鄂丝雨
+张小雨
+林佳滢
+张锦涛
+谭怡姿
+邓凯
+陆洋溢
+蒙萌
+李云峰
+李香依
+何悦
+朱子铭
+苏真辉
+朱晓雅
+朱艺粼
+赵一涵
+杨宇昕
+权欣旖
+赵雨暄
+陆思媛
+ZHANG WU ANGELIC A YOLIN
+郭佳欣
+黎乐儿</textarea>
+                    <div class="roster-meta">
+                        <p class="roster-note">提示：名单内容直接保存在页面里，刷新后仍是当前这份默认名单。</p>
+                        <span class="roster-token">支持实时修改</span>
+                    </div>
+                </div>
+            </section>
 
-        <div class="stats">
-            <div class="stat-item">
-                <div class="stat-value" id="totalCount">0</div>
-                <div class="stat-label">总人数</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="pickCount">0</div>
-                <div class="stat-label">已点名</div>
-            </div>
-        </div>
+            <section class="stage-panel">
+                <section class="panel">
+                    <div class="stage-shell">
+                        <div class="stage-top">
+                            <div>
+                                <div class="eyebrow">Selection Stage</div>
+                                <div class="stage-tag">No. 01 Random Call</div>
+                            </div>
+                            <p class="status-line" id="statusLine">名单已经载入，随时可以开始本轮点名。</p>
+                        </div>
 
-        <div class="history" id="historySection" style="display: none;">
-            <div class="history-title">📋 点名记录</div>
-            <div id="historyList"></div>
-        </div>
+                        <div class="result-frame" id="resultFrame">
+                            <div class="result" id="result">待揭晓</div>
+                        </div>
+
+                        <button class="btn" id="startBtn" type="button">开始点名</button>
+                    </div>
+                </section>
+
+                <div class="stats">
+                    <div class="panel stat-card">
+                        <div class="stat-label">Total Students</div>
+                        <div class="stat-value" id="totalCount">00</div>
+                    </div>
+                    <div class="panel stat-card">
+                        <div class="stat-label">Rounds Completed</div>
+                        <div class="stat-value" id="pickCount">00</div>
+                    </div>
+                </div>
+
+                <section class="panel history" id="historySection" style="display: none;">
+                    <div class="history-head">
+                        <div>
+                            <div class="eyebrow">Call History</div>
+                            <h3>本节课已经点到的同学</h3>
+                        </div>
+                    </div>
+                    <div class="history-list" id="historyList"></div>
+                </section>
+            </section>
+        </main>
     </div>
 
     <div class="confetti" id="confetti"></div>
 
     <script>
+        const ui = {
+            names: document.getElementById('names'),
+            result: document.getElementById('result'),
+            resultFrame: document.getElementById('resultFrame'),
+            startBtn: document.getElementById('startBtn'),
+            totalCount: document.getElementById('totalCount'),
+            pickCount: document.getElementById('pickCount'),
+            historySection: document.getElementById('historySection'),
+            historyList: document.getElementById('historyList'),
+            statusLine: document.getElementById('statusLine'),
+            confetti: document.getElementById('confetti')
+        };
+
         let isRolling = false;
         let history = [];
         let rollTimer = null;
 
-        // 初始化人数统计
         updateTotalCount();
-        document.getElementById('names').addEventListener('input', updateTotalCount);
-        document.getElementById('startBtn').addEventListener('click', startPick);
+        ui.names.addEventListener('input', updateTotalCount);
+        ui.startBtn.addEventListener('click', startPick);
 
         function parseNames() {
-            const input = document.getElementById('names').value;
-            return input.split(/[\n,，\s]+/).filter(name => name.trim() !== '');
+            return ui.names.value
+                .split(/\n+/)
+                .flatMap((line) => line.split(/[,，]+/))
+                .map((name) => name.trim())
+                .filter(Boolean);
+        }
+
+        function formatStat(value) {
+            return String(value).padStart(2, '0');
         }
 
         function updateTotalCount() {
             const names = parseNames();
-            document.getElementById('totalCount').textContent = names.length;
+            ui.totalCount.textContent = formatStat(names.length);
+
+            if (!isRolling) {
+                ui.statusLine.textContent = names.length
+                    ? `当前已载入 ${names.length} 位同学，点击右侧按钮开始本轮点名。`
+                    : '请先输入学生名单，再开始随机点名。';
+            }
         }
 
         function startPick() {
-            if (isRolling) return;
+            if (isRolling) {
+                return;
+            }
 
             const names = parseNames();
             if (names.length === 0) {
@@ -294,27 +788,29 @@
                 return;
             }
 
-            const resultEl = document.getElementById('result');
-            const btn = document.getElementById('startBtn');
-
             isRolling = true;
-            btn.disabled = true;
-            btn.textContent = '🎲 滚动中...';
-            resultEl.classList.add('rolling');
+            ui.startBtn.disabled = true;
+            ui.startBtn.textContent = '点名进行中';
+            ui.result.classList.add('rolling');
+            ui.resultFrame.classList.add('live');
+            ui.statusLine.textContent = '名字正在舞台中央滚动，系统正在为你锁定本轮结果。';
 
-            // 滚动动画
             let speed = 50;
             let count = 0;
-            const maxCount = Math.floor(30 + Math.random() * 10);
+            const maxCount = Math.floor(32 + Math.random() * 12);
 
             function rollOnce() {
                 const randomName = names[Math.floor(Math.random() * names.length)];
-                resultEl.textContent = randomName;
-                count++;
+                ui.result.textContent = randomName;
+                count += 1;
 
-                // 逐渐减速
-                if (count > maxCount * 0.7) speed = 100;
-                if (count > maxCount * 0.9) speed = 200;
+                if (count > maxCount * 0.68) {
+                    speed = 105;
+                }
+
+                if (count > maxCount * 0.88) {
+                    speed = 210;
+                }
 
                 if (count >= maxCount) {
                     rollTimer = null;
@@ -329,65 +825,70 @@
         }
 
         function finishPick(winner) {
-            const resultEl = document.getElementById('result');
-            const btn = document.getElementById('startBtn');
+            ui.result.classList.remove('rolling');
+            ui.resultFrame.classList.remove('live');
+            ui.result.style.transform = 'translateY(-6px) scale(1.04)';
 
-            resultEl.classList.remove('rolling');
-            resultEl.style.transform = 'scale(1.2)';
             setTimeout(() => {
-                resultEl.style.transform = 'scale(1)';
-            }, 300);
+                ui.result.style.transform = 'translateY(0) scale(1)';
+            }, 320);
 
-            // 添加到历史记录
             history.push(winner);
             updateHistory();
 
-            // 更新统计
-            document.getElementById('pickCount').textContent = history.length;
+            ui.pickCount.textContent = formatStat(history.length);
+            ui.statusLine.textContent = `本轮点到：${winner}。如果需要，下面可以继续抽下一位同学。`;
 
-            // 彩带效果
             createConfetti();
 
-            // 恢复按钮
             isRolling = false;
-            btn.disabled = false;
-            btn.textContent = '🎯 再次点名';
+            ui.startBtn.disabled = false;
+            ui.startBtn.textContent = '再点一位';
         }
 
         function updateHistory() {
-            const section = document.getElementById('historySection');
-            const list = document.getElementById('historyList');
-
-            if (history.length > 0) {
-                section.style.display = 'block';
-                list.innerHTML = history.map((name, index) =>
-                    `<span class="history-item">${index + 1}. ${name}</span>`
-                ).join('');
-
-                // 自动滚动到底部
-                list.scrollTop = list.scrollHeight;
+            if (history.length === 0) {
+                ui.historySection.style.display = 'none';
+                return;
             }
+
+            ui.historySection.style.display = 'block';
+
+            const fragment = document.createDocumentFragment();
+
+            history.forEach((name, index) => {
+                const item = document.createElement('span');
+                item.className = 'history-item';
+
+                const order = document.createElement('em');
+                order.textContent = formatStat(index + 1);
+
+                item.appendChild(order);
+                item.appendChild(document.createTextNode(name));
+                fragment.appendChild(item);
+            });
+
+            ui.historyList.replaceChildren(fragment);
+            ui.historySection.scrollTop = ui.historySection.scrollHeight;
         }
 
         function createConfetti() {
-            const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe'];
-            const container = document.getElementById('confetti');
+            const colors = ['#efb17d', '#d78656', '#86b5ae', '#f0e0bf', '#9ccac3'];
 
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < 46; i += 1) {
                 const piece = document.createElement('div');
                 piece.className = 'confetti-piece';
-                piece.style.left = Math.random() * 100 + '%';
+                piece.style.left = `${Math.random() * 100}%`;
                 piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                piece.style.animationDelay = Math.random() * 0.5 + 's';
-                piece.style.animationDuration = (2 + Math.random() * 2) + 's';
+                piece.style.animationDelay = `${Math.random() * 0.35}s`;
+                piece.style.animationDuration = `${2.2 + Math.random() * 1.6}s`;
+                piece.style.borderRadius = ['50%', '0%', '42% 58% 65% 35% / 39% 43% 57% 61%'][Math.floor(Math.random() * 3)];
 
-                // 随机形状
-                const shapes = ['50%', '0%', '50% 0 50% 50%'];
-                piece.style.borderRadius = shapes[Math.floor(Math.random() * shapes.length)];
+                if (Math.random() > 0.55) {
+                    piece.style.clipPath = 'polygon(50% 0%, 0% 100%, 100% 100%)';
+                }
 
-                container.appendChild(piece);
-
-                // 清理
+                ui.confetti.appendChild(piece);
                 setTimeout(() => piece.remove(), 4000);
             }
         }
