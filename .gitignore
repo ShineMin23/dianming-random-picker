@@ -1,2 +1,7 @@
 __pycache__/
 .DS_Store
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+.env
+.env.local

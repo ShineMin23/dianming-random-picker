@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中传春游报名后台</title>
+    <meta name="description" content="中传春游活动报名后台，支持名单查看、搜索与 CSV 导出。">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f6f0df;
+            --panel: rgba(255, 252, 245, 0.92);
+            --panel-strong: #fffaf0;
+            --ink: #2d2418;
+            --muted: rgba(45, 36, 24, 0.64);
+            --leaf: #24442e;
+            --leaf-soft: #597359;
+            --gold: #cc9e4a;
+            --sand: #eadab6;
+            --line: rgba(36, 68, 46, 0.14);
+            --shadow: 0 24px 60px rgba(52, 52, 33, 0.14);
+            --danger: #9a3d2f;
+            --radius-xl: 30px;
+            --radius-lg: 22px;
+            --radius-md: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Noto Sans SC", "PingFang SC", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(204, 158, 74, 0.24), transparent 34%),
+                radial-gradient(circle at 100% 20%, rgba(89, 115, 89, 0.18), transparent 26%),
+                linear-gradient(180deg, #fbf6ea 0%, #f1e7cf 100%);
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.12;
+            background-image:
+                linear-gradient(rgba(36, 68, 46, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(36, 68, 46, 0.06) 1px, transparent 1px);
+            background-size: 100% 32px, 32px 100%;
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            width: min(1280px, calc(100vw - 32px));
+            margin: 0 auto;
+            padding: 28px 0 40px;
+        }
+
+        .header {
+            display: grid;
+            grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+            gap: 22px;
+            align-items: stretch;
+        }
+
+        .hero,
+        .access-card,
+        .workspace {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(12px);
+        }
+
+        .hero {
+            border-radius: var(--radius-xl);
+            padding: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            right: -40px;
+            bottom: -50px;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(204, 158, 74, 0.28) 0%, transparent 68%);
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: rgba(36, 68, 46, 0.08);
+            color: var(--leaf);
+            font-size: 0.8rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--gold);
+            box-shadow: 14px 0 0 rgba(89, 115, 89, 0.84);
+        }
+
+        .hero h1 {
+            margin: 22px 0 10px;
+            font-family: "ZCOOL XiaoWei", "Noto Sans SC", serif;
+            font-size: clamp(2.5rem, 6vw, 4.8rem);
+            line-height: 0.96;
+            color: var(--leaf);
+        }
+
+        .hero p {
+            margin: 0;
+            max-width: 680px;
+            font-size: 1rem;
+            line-height: 1.9;
+            color: var(--muted);
+        }
+
+        .hero-strip {
+            margin-top: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .hero-chip,
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            font-size: 0.84rem;
+            color: var(--leaf);
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(36, 68, 46, 0.1);
+        }
+
+        .hero-chip strong,
+        .pill strong {
+            font-family: "JetBrains Mono", monospace;
+            font-size: 0.78rem;
+            margin-left: 8px;
+        }
+
+        .access-card {
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            display: grid;
+            gap: 16px;
+            align-content: start;
+        }
+
+        .access-card h2,
+        .workspace-title h2,
+        .table-title h2 {
+            margin: 0;
+            font-size: 1rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--leaf);
+        }
+
+        .access-card p,
+        .workspace-title p,
+        .table-title p,
+        .empty-state {
+            margin: 0;
+            line-height: 1.8;
+            color: var(--muted);
+        }
+
+        .field {
+            display: grid;
+            gap: 8px;
+        }
+
+        .field label {
+            font-size: 0.92rem;
+            color: var(--ink);
+        }
+
+        .field input {
+            width: 100%;
+            border-radius: var(--radius-md);
+            border: 1.5px solid rgba(36, 68, 46, 0.16);
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.85);
+            font: inherit;
+            color: var(--ink);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .field input:focus,
+        .search input:focus {
+            outline: none;
+            border-color: rgba(36, 68, 46, 0.36);
+            box-shadow: 0 0 0 5px rgba(89, 115, 89, 0.12);
+        }
+
+        .actions,
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        button,
+        .ghost-link {
+            border: none;
+            border-radius: 999px;
+            padding: 13px 18px;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+        }
+
+        button:hover,
+        .ghost-link:hover {
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            opacity: 0.65;
+            cursor: wait;
+        }
+
+        .primary {
+            color: #fffaf0;
+            background: linear-gradient(135deg, #24442e 0%, #355540 100%);
+            box-shadow: 0 14px 28px rgba(36, 68, 46, 0.22);
+        }
+
+        .secondary {
+            color: var(--leaf);
+            background: rgba(36, 68, 46, 0.08);
+            border: 1px solid rgba(36, 68, 46, 0.12);
+        }
+
+        .ghost-link {
+            text-decoration: none;
+            color: var(--leaf);
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid rgba(36, 68, 46, 0.12);
+        }
+
+        .status {
+            min-height: 58px;
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            line-height: 1.7;
+            color: var(--muted);
+        }
+
+        .status.is-success {
+            background: rgba(89, 115, 89, 0.12);
+            border-color: rgba(89, 115, 89, 0.22);
+            color: var(--leaf);
+        }
+
+        .status.is-error {
+            background: rgba(154, 61, 47, 0.1);
+            border-color: rgba(154, 61, 47, 0.2);
+            color: var(--danger);
+        }
+
+        .status.is-warn {
+            background: rgba(204, 158, 74, 0.12);
+            border-color: rgba(204, 158, 74, 0.24);
+            color: #7d5b17;
+        }
+
+        .workspace {
+            margin-top: 22px;
+            border-radius: var(--radius-xl);
+            padding: 24px;
+            display: grid;
+            gap: 20px;
+        }
+
+        .workspace-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            align-items: flex-start;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .stat {
+            padding: 18px 16px;
+            border-radius: var(--radius-lg);
+            background: rgba(255, 255, 255, 0.74);
+            border: 1px solid rgba(36, 68, 46, 0.1);
+        }
+
+        .stat span {
+            display: block;
+            font-size: 0.78rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(45, 36, 24, 0.5);
+        }
+
+        .stat strong {
+            display: block;
+            margin-top: 8px;
+            font-size: 1.45rem;
+            color: var(--leaf);
+        }
+
+        .search {
+            position: relative;
+        }
+
+        .search input {
+            width: 100%;
+            border-radius: 18px;
+            border: 1.5px solid rgba(36, 68, 46, 0.14);
+            padding: 15px 16px;
+            background: rgba(255, 255, 255, 0.84);
+            font: inherit;
+            color: var(--ink);
+        }
+
+        .table-shell {
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid rgba(36, 68, 46, 0.12);
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: rgba(36, 68, 46, 0.94);
+            color: #fffaf0;
+        }
+
+        th,
+        td {
+            padding: 16px 18px;
+            text-align: left;
+            border-bottom: 1px solid rgba(36, 68, 46, 0.08);
+            vertical-align: top;
+        }
+
+        th {
+            font-size: 0.84rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        td {
+            font-size: 0.96rem;
+            color: var(--ink);
+        }
+
+        .mono {
+            font-family: "JetBrains Mono", monospace;
+            font-size: 0.88rem;
+        }
+
+        .cards {
+            display: none;
+            gap: 12px;
+        }
+
+        .card {
+            padding: 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.84);
+            border: 1px solid rgba(36, 68, 46, 0.1);
+            display: grid;
+            gap: 8px;
+        }
+
+        .card strong {
+            font-size: 1rem;
+            color: var(--leaf);
+        }
+
+        .card span {
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 1040px) {
+            .header {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .workspace-head {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .page {
+                width: min(100vw - 20px, 100%);
+                padding-top: 12px;
+            }
+
+            .hero,
+            .access-card,
+            .workspace {
+                padding: 20px;
+                border-radius: 24px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .table-shell {
+                display: none;
+            }
+
+            .cards {
+                display: grid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <section class="header">
+            <article class="hero">
+                <div class="eyebrow">Protected Registration Archive</div>
+                <h1>春游报名后台</h1>
+                <p>
+                    这里是活动名单总控台。录入仍然走公开报名页，后台负责完整名单查看、搜索筛选和 CSV 导出。
+                    页面默认不会暴露学生数据，只有输入本地 `ADMIN_TOKEN` 才能解锁。
+                </p>
+                <div class="hero-strip">
+                    <div class="hero-chip">管理路由 <strong>/admin</strong></div>
+                    <div class="hero-chip">导出格式 <strong>CSV</strong></div>
+                    <div class="hero-chip">后台状态 <strong id="heroBackend">读取中</strong></div>
+                </div>
+            </article>
+
+            <aside class="access-card">
+                <div>
+                    <h2>后台解锁</h2>
+                    <p>后台口令保存在你本地的 <code>.env.local</code> 文件里。输入后只在当前浏览器会话中缓存。</p>
+                </div>
+
+                <div class="field">
+                    <label for="tokenInput">ADMIN_TOKEN</label>
+                    <input id="tokenInput" type="password" placeholder="输入本地后台口令">
+                </div>
+
+                <div class="actions">
+                    <button class="primary" id="unlockBtn" type="button">解锁后台</button>
+                    <button class="secondary" id="refreshBtn" type="button">刷新名单</button>
+                    <button class="secondary" id="clearBtn" type="button">清除口令</button>
+                </div>
+
+                <div class="actions">
+                    <button class="secondary" id="exportBtn" type="button">导出 CSV</button>
+                    <a class="ghost-link" href="/">返回报名页</a>
+                </div>
+
+                <div class="status" id="statusBox">正在检查后台配置...</div>
+            </aside>
+        </section>
+
+        <section class="workspace">
+            <div class="workspace-head">
+                <div class="workspace-title">
+                    <h2>名单总览</h2>
+                    <p>支持按姓名或学号搜索。时间展示已自动换算为中国时区。</p>
+                </div>
+                <div class="pill">最近同步 <strong id="lastSync">等待加载</strong></div>
+            </div>
+
+            <section class="stats">
+                <article class="stat">
+                    <span>数据后端</span>
+                    <strong id="databaseValue">--</strong>
+                </article>
+                <article class="stat">
+                    <span>报名总数</span>
+                    <strong id="countValue">0</strong>
+                </article>
+                <article class="stat">
+                    <span>筛选结果</span>
+                    <strong id="filteredValue">0</strong>
+                </article>
+                <article class="stat">
+                    <span>导出状态</span>
+                    <strong id="exportValue">待导出</strong>
+                </article>
+            </section>
+
+            <section class="search">
+                <input id="searchInput" type="search" placeholder="按姓名或学号搜索，例如：张小丽 / 123454">
+            </section>
+
+            <section class="table-title">
+                <h2>报名名单</h2>
+                <p id="tableHint">解锁后台后即可查看完整报名数据。</p>
+            </section>
+
+            <section class="table-shell">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>姓名</th>
+                            <th>学号</th>
+                            <th>报名时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </section>
+
+            <section class="cards" id="cardList"></section>
+            <div class="empty-state" id="emptyState">暂无数据。</div>
+        </section>
+    </main>
+
+    <script>
+        const STORAGE_KEY = "springTripAdminToken";
+
+        const state = {
+            token: sessionStorage.getItem(STORAGE_KEY) || "",
+            rows: [],
+            configured: false,
+            database: "--"
+        };
+
+        const tokenInput = document.getElementById("tokenInput");
+        const unlockBtn = document.getElementById("unlockBtn");
+        const refreshBtn = document.getElementById("refreshBtn");
+        const clearBtn = document.getElementById("clearBtn");
+        const exportBtn = document.getElementById("exportBtn");
+        const searchInput = document.getElementById("searchInput");
+        const statusBox = document.getElementById("statusBox");
+        const lastSync = document.getElementById("lastSync");
+        const databaseValue = document.getElementById("databaseValue");
+        const countValue = document.getElementById("countValue");
+        const filteredValue = document.getElementById("filteredValue");
+        const exportValue = document.getElementById("exportValue");
+        const heroBackend = document.getElementById("heroBackend");
+        const tableBody = document.getElementById("tableBody");
+        const cardList = document.getElementById("cardList");
+        const emptyState = document.getElementById("emptyState");
+        const tableHint = document.getElementById("tableHint");
+
+        tokenInput.value = state.token;
+
+        function setStatus(type, message) {
+            statusBox.className = "status";
+            if (type) {
+                statusBox.classList.add(`is-${type}`);
+            }
+            statusBox.textContent = message;
+        }
+
+        function setBusy(isBusy) {
+            unlockBtn.disabled = isBusy;
+            refreshBtn.disabled = isBusy;
+            exportBtn.disabled = isBusy;
+        }
+
+        function headersWithToken() {
+            const headers = { Accept: "application/json" };
+            if (state.token) {
+                headers["X-Admin-Token"] = state.token;
+            }
+            return headers;
+        }
+
+        function formatDisplayTime(value) {
+            if (!value) {
+                return "--";
+            }
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return value;
+            }
+            return new Intl.DateTimeFormat("zh-CN", {
+                timeZone: "Asia/Shanghai",
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            }).format(date);
+        }
+
+        function filteredRows() {
+            const keyword = searchInput.value.trim().toLowerCase();
+            if (!keyword) {
+                return state.rows.slice();
+            }
+            return state.rows.filter((row) => {
+                const name = String(row.name || "").toLowerCase();
+                const studentId = String(row.studentId || "").toLowerCase();
+                return name.includes(keyword) || studentId.includes(keyword);
+            });
+        }
+
+        function renderRows() {
+            tableBody.innerHTML = "";
+            cardList.innerHTML = "";
+
+            const rows = filteredRows();
+            filteredValue.textContent = String(rows.length);
+            emptyState.classList.toggle("hidden", rows.length > 0);
+
+            if (rows.length === 0) {
+                emptyState.textContent = state.rows.length === 0
+                    ? "还没有报名数据，或后台尚未解锁。"
+                    : "没有匹配到符合条件的报名记录。";
+                return;
+            }
+
+            rows.forEach((row) => {
+                const tr = document.createElement("tr");
+
+                const idCell = document.createElement("td");
+                idCell.className = "mono";
+                idCell.textContent = row.id ?? "--";
+
+                const nameCell = document.createElement("td");
+                nameCell.textContent = row.name || "--";
+
+                const studentCell = document.createElement("td");
+                studentCell.className = "mono";
+                studentCell.textContent = row.studentId || "--";
+
+                const timeCell = document.createElement("td");
+                timeCell.textContent = row.createdAtDisplay || formatDisplayTime(row.createdAt);
+
+                tr.appendChild(idCell);
+                tr.appendChild(nameCell);
+                tr.appendChild(studentCell);
+                tr.appendChild(timeCell);
+                tableBody.appendChild(tr);
+
+                const card = document.createElement("article");
+                card.className = "card";
+
+                const title = document.createElement("strong");
+                title.textContent = row.name || "--";
+
+                const idText = document.createElement("span");
+                const idMono = document.createElement("span");
+                idMono.className = "mono";
+                idMono.textContent = `学号：${row.studentId || "--"}`;
+                idText.appendChild(idMono);
+
+                const timeText = document.createElement("span");
+                timeText.textContent = `报名时间：${row.createdAtDisplay || formatDisplayTime(row.createdAt)}`;
+
+                const serialText = document.createElement("span");
+                serialText.textContent = `记录 ID：${row.id ?? "--"}`;
+
+                card.appendChild(title);
+                card.appendChild(idText);
+                card.appendChild(timeText);
+                card.appendChild(serialText);
+                cardList.appendChild(card);
+            });
+        }
+
+        async function loadMeta() {
+            const response = await fetch("/api/admin/meta", {
+                headers: { Accept: "application/json" }
+            });
+            const payload = await response.json();
+            state.configured = Boolean(payload.configured);
+            state.database = payload.database || "--";
+            databaseValue.textContent = state.database;
+            heroBackend.textContent = state.database;
+
+            if (!state.configured) {
+                setStatus("warn", "后台口令尚未配置，请先在 .env.local 中设置 ADMIN_TOKEN。");
+                tableHint.textContent = "后台未启用，请先配置 ADMIN_TOKEN。";
+                return;
+            }
+
+            setStatus("", "后台已启用，输入 ADMIN_TOKEN 后即可查看完整名单。");
+        }
+
+        async function loadRegistrations() {
+            if (!state.token) {
+                setStatus("warn", "请先输入后台口令。");
+                return;
+            }
+
+            setBusy(true);
+            try {
+                const response = await fetch("/api/admin/registrations", {
+                    headers: headersWithToken()
+                });
+                const payload = await response.json().catch(() => ({}));
+
+                if (response.status === 401) {
+                    setStatus("error", payload.message || "后台口令不正确，请重新输入。");
+                    return;
+                }
+
+                if (response.status === 503) {
+                    setStatus("warn", payload.message || "后台尚未启用。");
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(payload.message || "读取报名名单失败。");
+                }
+
+                state.rows = Array.isArray(payload.registrations) ? payload.registrations : [];
+                countValue.textContent = String(payload.count ?? state.rows.length);
+                databaseValue.textContent = payload.database || state.database;
+                heroBackend.textContent = payload.database || state.database;
+                lastSync.textContent = formatDisplayTime(payload.generatedAt);
+                tableHint.textContent = `已载入 ${state.rows.length} 条报名记录，可继续搜索或导出。`;
+                setStatus("success", `名单已同步完成，共 ${state.rows.length} 条记录。`);
+                renderRows();
+            } catch (error) {
+                setStatus("error", error.message || "读取报名名单失败。");
+            } finally {
+                setBusy(false);
+            }
+        }
+
+        async function exportCsv() {
+            if (!state.token) {
+                setStatus("warn", "请先输入后台口令，再导出 CSV。");
+                return;
+            }
+
+            exportValue.textContent = "导出中";
+            exportBtn.disabled = true;
+
+            try {
+                const response = await fetch("/api/admin/export.csv", {
+                    headers: headersWithToken()
+                });
+
+                if (response.status === 401) {
+                    const payload = await response.json().catch(() => ({}));
+                    setStatus("error", payload.message || "后台口令不正确，无法导出。");
+                    exportValue.textContent = "导出失败";
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error("导出 CSV 失败。");
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                const disposition = response.headers.get("Content-Disposition") || "";
+                const match = disposition.match(/filename="([^"]+)"/);
+                link.href = url;
+                link.download = match ? match[1] : "spring-trip-registrations.csv";
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(url);
+
+                exportValue.textContent = "已导出";
+                setStatus("success", "CSV 已导出到浏览器下载列表。");
+            } catch (error) {
+                exportValue.textContent = "导出失败";
+                setStatus("error", error.message || "导出 CSV 失败。");
+            } finally {
+                exportBtn.disabled = false;
+            }
+        }
+
+        unlockBtn.addEventListener("click", async () => {
+            state.token = tokenInput.value.trim();
+            if (!state.token) {
+                setStatus("warn", "请先输入后台口令。");
+                return;
+            }
+            sessionStorage.setItem(STORAGE_KEY, state.token);
+            await loadRegistrations();
+        });
+
+        refreshBtn.addEventListener("click", loadRegistrations);
+        exportBtn.addEventListener("click", exportCsv);
+
+        clearBtn.addEventListener("click", () => {
+            state.token = "";
+            state.rows = [];
+            tokenInput.value = "";
+            sessionStorage.removeItem(STORAGE_KEY);
+            countValue.textContent = "0";
+            filteredValue.textContent = "0";
+            exportValue.textContent = "待导出";
+            lastSync.textContent = "等待加载";
+            tableHint.textContent = "解锁后台后即可查看完整报名数据。";
+            setStatus("", "后台口令已清除。");
+            renderRows();
+        });
+
+        searchInput.addEventListener("input", renderRows);
+
+        loadMeta().then(() => {
+            if (state.token && state.configured) {
+                loadRegistrations();
+            } else {
+                renderRows();
+            }
+        });
+    </script>
+</body>
+</html>

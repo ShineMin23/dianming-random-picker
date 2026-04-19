@@ -3,13 +3,1111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>随机课堂点名</title>
-    <meta http-equiv="refresh" content="0; url=./random-picker.html">
-    <script>
-        window.location.replace('./random-picker.html');
-    </script>
+    <title>2026 中传春游报名征集</title>
+    <meta name="description" content="中传春游活动报名页，支持姓名与学号登记、重复报名校验与 Supabase 落库。">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Noto+Sans+SC:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #efebe1;
+            --paper: rgba(255, 252, 246, 0.92);
+            --paper-strong: #fffdf8;
+            --ink: #1f251f;
+            --muted: rgba(31, 37, 31, 0.68);
+            --line: rgba(50, 70, 43, 0.12);
+            --accent: #b2ef72;
+            --accent-deep: #7dcf4b;
+            --leaf: #4f6f47;
+            --leaf-deep: #253422;
+            --mist: rgba(255, 255, 255, 0.8);
+            --shadow: 0 28px 80px rgba(54, 59, 41, 0.16);
+            --radius-xl: 34px;
+            --radius-lg: 26px;
+            --radius-md: 18px;
+            --content-width: min(1180px, calc(100vw - 32px));
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Noto Sans SC", "PingFang SC", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(178, 239, 114, 0.24), transparent 28%),
+                radial-gradient(circle at 85% 12%, rgba(166, 191, 111, 0.18), transparent 22%),
+                linear-gradient(180deg, #ede9de 0%, #ece7da 100%);
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.08;
+            background-image:
+                linear-gradient(rgba(37, 52, 34, 0.06) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(37, 52, 34, 0.04) 1px, transparent 1px);
+            background-size: 100% 34px, 34px 100%;
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            width: var(--content-width);
+            margin: 0 auto;
+            padding: 18px 0 32px;
+        }
+
+        .hero-shell {
+            position: relative;
+            min-height: 760px;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            background:
+                linear-gradient(180deg, rgba(255, 251, 244, 0.08) 0%, rgba(255, 252, 247, 0.18) 40%, rgba(255, 251, 244, 0.76) 74%, rgba(255, 249, 243, 0.98) 100%),
+                radial-gradient(circle at 12% 12%, rgba(255, 243, 250, 0.78), transparent 16%),
+                radial-gradient(circle at 18% 18%, rgba(247, 237, 244, 0.82), transparent 24%),
+                radial-gradient(circle at 80% 18%, rgba(220, 240, 198, 0.6), transparent 26%),
+                linear-gradient(115deg, #7d6d5a 0%, #d2c4b0 36%, #e4ddd0 54%, #8fa16a 100%);
+        }
+
+        .hero-shell::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 18% 14%, rgba(255, 255, 255, 0.72), transparent 18%),
+                radial-gradient(circle at 67% 22%, rgba(246, 248, 237, 0.34), transparent 19%),
+                radial-gradient(circle at 77% 16%, rgba(183, 209, 128, 0.34), transparent 18%);
+            mix-blend-mode: screen;
+            pointer-events: none;
+        }
+
+        .branch-layer,
+        .branch-layer::before,
+        .branch-layer::after {
+            position: absolute;
+            content: "";
+            display: block;
+            border-radius: 999px;
+            transform-origin: left center;
+        }
+
+        .branch-layer {
+            top: 110px;
+            left: -6%;
+            width: 74%;
+            height: 15px;
+            background: linear-gradient(90deg, rgba(82, 63, 43, 0.92), rgba(112, 86, 57, 0.8));
+            transform: rotate(10deg);
+            box-shadow:
+                280px 126px 0 0 rgba(90, 70, 49, 0.88),
+                620px 164px 0 0 rgba(72, 54, 34, 0.82);
+            filter: blur(0.2px);
+        }
+
+        .branch-layer::before {
+            top: -84px;
+            left: 210px;
+            width: 42%;
+            height: 12px;
+            background: rgba(99, 75, 49, 0.9);
+            transform: rotate(24deg);
+            box-shadow:
+                180px 112px 0 0 rgba(84, 62, 40, 0.84),
+                330px 190px 0 0 rgba(75, 54, 33, 0.78);
+        }
+
+        .branch-layer::after {
+            top: 48px;
+            left: 360px;
+            width: 26%;
+            height: 11px;
+            background: rgba(90, 69, 48, 0.88);
+            transform: rotate(-18deg);
+            box-shadow:
+                118px 108px 0 0 rgba(101, 74, 48, 0.82),
+                246px 40px 0 0 rgba(86, 63, 41, 0.78);
+        }
+
+        .blossoms,
+        .blossoms::before,
+        .blossoms::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .blossoms {
+            inset: 0;
+            background:
+                radial-gradient(circle at 11% 20%, rgba(251, 245, 249, 0.94) 0 3px, transparent 4px),
+                radial-gradient(circle at 16% 16%, rgba(255, 240, 246, 0.96) 0 5px, transparent 6px),
+                radial-gradient(circle at 20% 22%, rgba(255, 247, 250, 0.92) 0 4px, transparent 5px),
+                radial-gradient(circle at 27% 14%, rgba(255, 244, 247, 0.94) 0 4px, transparent 5px),
+                radial-gradient(circle at 34% 18%, rgba(248, 241, 244, 0.88) 0 5px, transparent 6px),
+                radial-gradient(circle at 74% 10%, rgba(198, 226, 160, 0.8) 0 4px, transparent 5px),
+                radial-gradient(circle at 84% 18%, rgba(214, 235, 188, 0.84) 0 6px, transparent 7px),
+                radial-gradient(circle at 88% 24%, rgba(225, 239, 198, 0.8) 0 4px, transparent 5px);
+            opacity: 0.72;
+        }
+
+        .blossoms::before {
+            inset: 0;
+            background:
+                radial-gradient(circle at 24% 28%, rgba(255, 252, 252, 0.9) 0 4px, transparent 5px),
+                radial-gradient(circle at 30% 24%, rgba(255, 241, 248, 0.92) 0 5px, transparent 6px),
+                radial-gradient(circle at 38% 24%, rgba(250, 246, 249, 0.9) 0 3px, transparent 4px),
+                radial-gradient(circle at 44% 18%, rgba(248, 247, 244, 0.82) 0 4px, transparent 5px),
+                radial-gradient(circle at 82% 12%, rgba(195, 223, 150, 0.72) 0 4px, transparent 5px);
+            opacity: 0.74;
+        }
+
+        .blossoms::after {
+            inset: auto;
+            right: 12%;
+            bottom: 30%;
+            width: 220px;
+            height: 300px;
+            border-radius: 18px 18px 0 0;
+            background:
+                linear-gradient(180deg, rgba(191, 165, 139, 0.18), rgba(167, 132, 100, 0.24)),
+                linear-gradient(90deg, rgba(145, 110, 75, 0.32) 0 12%, transparent 12% 18%, rgba(145, 110, 75, 0.28) 18% 28%, transparent 28% 44%, rgba(145, 110, 75, 0.28) 44% 56%, transparent 56% 62%, rgba(145, 110, 75, 0.24) 62% 72%, transparent 72%);
+            box-shadow:
+                -290px 34px 0 0 rgba(170, 130, 96, 0.18),
+                -150px 52px 0 0 rgba(185, 152, 116, 0.14);
+            opacity: 0.74;
+            filter: blur(0.25px);
+        }
+
+        .masthead {
+            position: absolute;
+            top: 18px;
+            left: 18px;
+            right: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 16px 22px;
+            border-radius: 18px;
+            background: rgba(255, 252, 247, 0.92);
+            border: 1px solid rgba(63, 82, 48, 0.1);
+            box-shadow: 0 10px 24px rgba(42, 48, 32, 0.08);
+            backdrop-filter: blur(12px);
+        }
+
+        .brand {
+            font-family: "Archivo", sans-serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--ink);
+            letter-spacing: -0.04em;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 26px;
+            flex: 1;
+            justify-content: center;
+            margin: 0 20px;
+        }
+
+        .nav a,
+        .hero-action,
+        .ghost-action {
+            text-decoration: none;
+            color: var(--ink);
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .hero-action,
+        .ghost-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 0 20px;
+            border-radius: 999px;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease;
+        }
+
+        .hero-action {
+            background: linear-gradient(135deg, var(--accent) 0%, #9fe15f 100%);
+            box-shadow: 0 12px 24px rgba(152, 210, 91, 0.24);
+        }
+
+        .ghost-action {
+            border: 1px solid rgba(37, 52, 34, 0.1);
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        .hero-action:hover,
+        .ghost-action:hover,
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 320px;
+            gap: 30px;
+            min-height: 760px;
+            padding: 130px 34px 180px;
+            align-items: end;
+        }
+
+        .campaign-tag {
+            display: inline-flex;
+            align-items: center;
+            min-height: 34px;
+            padding: 0 14px;
+            border-radius: 999px;
+            background: rgba(120, 169, 73, 0.9);
+            color: #faffef;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .headline {
+            max-width: 620px;
+        }
+
+        .headline h1 {
+            margin: 18px 0 14px;
+            font-size: clamp(3.3rem, 7vw, 5.9rem);
+            line-height: 0.95;
+            font-weight: 800;
+            letter-spacing: -0.06em;
+            color: #ffffff;
+            text-shadow: 0 8px 32px rgba(64, 49, 32, 0.25);
+        }
+
+        .headline h1 em {
+            color: var(--accent);
+            font-style: normal;
+        }
+
+        .headline p {
+            margin: 0;
+            max-width: 480px;
+            font-size: 1rem;
+            line-height: 1.85;
+            color: rgba(255, 255, 255, 0.88);
+        }
+
+        .headline-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .headline-pill {
+            display: inline-flex;
+            align-items: center;
+            min-height: 40px;
+            padding: 0 16px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            color: #ffffff;
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        .hero-side {
+            display: grid;
+            gap: 14px;
+            align-content: end;
+        }
+
+        .side-card,
+        .mini-stat {
+            border-radius: 22px;
+            background: rgba(255, 251, 246, 0.76);
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 18px 34px rgba(59, 57, 39, 0.08);
+        }
+
+        .side-card {
+            padding: 20px;
+        }
+
+        .side-card h2,
+        .recent-section h2,
+        .guide-card h2,
+        .form-card h2 {
+            margin: 0;
+            font-size: 1rem;
+            color: var(--leaf-deep);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .side-card p,
+        .guide-card li,
+        .guide-card p,
+        .form-lead,
+        .form-note,
+        .recent-text,
+        .footer-copy {
+            color: var(--muted);
+            line-height: 1.8;
+        }
+
+        .mini-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .mini-stat {
+            padding: 18px;
+        }
+
+        .mini-stat span {
+            display: block;
+            font-size: 0.74rem;
+            color: rgba(37, 52, 34, 0.52);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .mini-stat strong {
+            display: block;
+            margin-top: 10px;
+            font-size: 1.4rem;
+            color: var(--leaf-deep);
+        }
+
+        .form-stage {
+            position: relative;
+            z-index: 2;
+            width: min(760px, calc(100% - 32px));
+            margin: -140px auto 0;
+        }
+
+        .form-card {
+            border-radius: 34px;
+            background: rgba(255, 253, 249, 0.96);
+            border: 1px solid rgba(64, 83, 46, 0.08);
+            box-shadow: 0 28px 70px rgba(56, 56, 44, 0.14);
+            padding: 34px;
+        }
+
+        .form-card h2 {
+            position: relative;
+            margin-bottom: 18px;
+            font-size: 1.25rem;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        .form-card h2::after {
+            content: "";
+            display: block;
+            width: 72px;
+            height: 4px;
+            margin-top: 12px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--accent-deep) 100%);
+        }
+
+        .form-lead {
+            margin: -2px 0 18px;
+            font-size: 0.98rem;
+        }
+
+        .meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .meta-chip {
+            display: inline-flex;
+            align-items: center;
+            min-height: 38px;
+            padding: 0 14px;
+            border-radius: 999px;
+            background: #f2f1eb;
+            color: rgba(31, 37, 31, 0.72);
+            font-size: 0.84rem;
+            font-weight: 600;
+        }
+
+        .meta-chip.is-active {
+            background: rgba(178, 239, 114, 0.92);
+            color: var(--leaf-deep);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .field {
+            display: grid;
+            gap: 8px;
+        }
+
+        .field label {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--leaf-deep);
+        }
+
+        .field input {
+            width: 100%;
+            min-height: 58px;
+            border-radius: 12px;
+            border: 1px solid rgba(74, 94, 58, 0.1);
+            background: #ecebe5;
+            padding: 0 16px;
+            font: inherit;
+            color: var(--ink);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        .field input::placeholder {
+            color: rgba(31, 37, 31, 0.42);
+        }
+
+        .field input:focus {
+            outline: none;
+            border-color: rgba(125, 207, 75, 0.5);
+            box-shadow: 0 0 0 4px rgba(178, 239, 114, 0.16);
+            background: #f4f4ef;
+        }
+
+        .insight-box {
+            margin-top: 18px;
+            padding: 16px 18px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, rgba(244, 247, 237, 0.88), rgba(251, 250, 246, 0.94));
+            border: 1px solid rgba(91, 115, 69, 0.1);
+        }
+
+        .insight-box strong {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--leaf-deep);
+            font-size: 0.92rem;
+        }
+
+        .submit-wrap {
+            margin-top: 24px;
+        }
+
+        .submit-btn {
+            position: relative;
+            width: 100%;
+            min-height: 62px;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--accent) 0%, #9fe15f 100%);
+            color: var(--leaf-deep);
+            font: inherit;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 18px 30px rgba(155, 214, 95, 0.28);
+            transition: transform 0.18s ease, opacity 0.18s ease;
+        }
+
+        .submit-btn:disabled {
+            cursor: wait;
+            opacity: 0.84;
+        }
+
+        .button-text,
+        .button-loading {
+            transition: opacity 0.2s ease;
+        }
+
+        .button-loading {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            opacity: 0;
+        }
+
+        .submit-btn.is-loading .button-text {
+            opacity: 0;
+        }
+
+        .submit-btn.is-loading .button-loading {
+            opacity: 1;
+        }
+
+        .feedback {
+            min-height: 58px;
+            margin-top: 16px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: #f5f3ed;
+            border: 1px solid transparent;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .feedback.is-success {
+            background: rgba(178, 239, 114, 0.14);
+            border-color: rgba(125, 207, 75, 0.28);
+            color: var(--leaf-deep);
+        }
+
+        .feedback.is-error {
+            background: rgba(255, 121, 90, 0.12);
+            border-color: rgba(213, 100, 74, 0.22);
+            color: #913d29;
+        }
+
+        .feedback.is-warn {
+            background: rgba(255, 218, 137, 0.2);
+            border-color: rgba(213, 170, 82, 0.24);
+            color: #7a5910;
+        }
+
+        .form-note {
+            margin: 14px 0 0;
+            text-align: center;
+            font-size: 0.86rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+            margin-top: 34px;
+        }
+
+        .guide-card,
+        .recent-section {
+            padding: 24px;
+            border-radius: 26px;
+            background: rgba(255, 253, 248, 0.82);
+            border: 1px solid var(--line);
+            box-shadow: 0 18px 40px rgba(60, 63, 48, 0.08);
+        }
+
+        .guide-card ul {
+            margin: 14px 0 0;
+            padding-left: 18px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .recent-section {
+            background: rgba(248, 249, 241, 0.88);
+        }
+
+        .recent-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .recent-item,
+        .recent-empty {
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: rgba(37, 52, 34, 0.92);
+            color: #fcfff5;
+        }
+
+        .recent-item strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.98rem;
+        }
+
+        .recent-item span {
+            font-size: 0.84rem;
+            color: rgba(252, 255, 245, 0.76);
+        }
+
+        .recent-empty {
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px dashed rgba(37, 52, 34, 0.14);
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-top: 26px;
+            padding: 20px 4px 6px;
+            color: rgba(31, 37, 31, 0.48);
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+        }
+
+        .footer-links a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        @media (max-width: 1080px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                padding-bottom: 210px;
+            }
+
+            .hero-side {
+                max-width: 460px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 860px) {
+            .masthead {
+                flex-wrap: wrap;
+                justify-content: flex-start;
+            }
+
+            .nav {
+                order: 3;
+                width: 100%;
+                margin: 0;
+                justify-content: flex-start;
+                gap: 18px;
+                overflow-x: auto;
+                padding-bottom: 2px;
+            }
+
+            .hero-content {
+                padding-top: 156px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .page {
+                width: min(100vw - 18px, 100%);
+                padding-top: 10px;
+            }
+
+            .hero-shell {
+                min-height: 650px;
+                border-radius: 22px;
+            }
+
+            .masthead {
+                top: 12px;
+                left: 12px;
+                right: 12px;
+                padding: 14px 16px;
+            }
+
+            .brand {
+                font-size: 1.2rem;
+            }
+
+            .nav {
+                gap: 16px;
+            }
+
+            .hero-content {
+                padding: 154px 22px 174px;
+                min-height: 650px;
+            }
+
+            .headline h1 {
+                font-size: clamp(2.7rem, 15vw, 4.4rem);
+            }
+
+            .form-stage {
+                width: min(100% - 18px, 100%);
+                margin-top: -112px;
+            }
+
+            .form-card,
+            .guide-card,
+            .recent-section {
+                padding: 22px;
+                border-radius: 22px;
+            }
+
+            .mini-stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation: none !important;
+                transition: none !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
 </head>
 <body>
-    <p>正在打开应用，如果没有自动跳转，请点击 <a href="./random-picker.html">这里</a>。</p>
+    <main class="page">
+        <section class="hero-shell">
+            <div class="branch-layer" aria-hidden="true"></div>
+            <div class="blossoms" aria-hidden="true"></div>
+
+            <header class="masthead">
+                <div class="brand">CUC 2026</div>
+                <nav class="nav" aria-label="页面导航">
+                    <a href="#hero">Spring Outing</a>
+                    <a href="#schedule">Schedule</a>
+                    <a href="#guidelines">Guidelines</a>
+                    <a href="/admin">Admin</a>
+                </nav>
+                <a class="hero-action" href="#signup">Register Now</a>
+            </header>
+
+            <div class="hero-content" id="hero">
+                <section class="headline">
+                    <div class="campaign-tag">Campus Campaign</div>
+                    <h1><em>2026</em>中传春游<br>报名征集</h1>
+                    <p>
+                        参考春日招募海报的节奏来重做页面，让报名区像一张落在校园樱树下的邀请卡。
+                        保留真实姓名与学号登记、重复报名拦截，以及和 Supabase 的实时联动。
+                    </p>
+                    <div class="headline-meta">
+                        <div class="headline-pill">征集时间 4/16 - 4/23</div>
+                        <div class="headline-pill">学号唯一校验</div>
+                        <div class="headline-pill">移动端已适配</div>
+                    </div>
+                </section>
+
+                <aside class="hero-side">
+                    <section class="side-card" id="schedule">
+                        <h2>Spring Schedule</h2>
+                        <p>活动面向中传同学开放，页面支持快速登记与统一统计，适合作为班级或学院春游活动的正式报名入口。</p>
+                    </section>
+
+                    <div class="mini-stat-grid">
+                        <article class="mini-stat">
+                            <span>Current Signups</span>
+                            <strong id="signupCount">--</strong>
+                        </article>
+                        <article class="mini-stat">
+                            <span>Database</span>
+                            <strong id="databaseStatus">SQLite</strong>
+                        </article>
+                    </div>
+
+                    <article class="mini-stat">
+                        <span>Service Status</span>
+                        <strong id="statusBadge">已连接</strong>
+                    </article>
+                </aside>
+            </div>
+        </section>
+
+        <section class="form-stage" id="signup">
+            <article class="form-card">
+                <h2>填写个人信息</h2>
+                <p class="form-lead">只保留真正需要提交到数据库的信息。报名完成后会立即写入远端数据库，并同步更新当前人数。</p>
+
+                <div class="meta-row" aria-label="报名提示">
+                    <div class="meta-chip is-active">一个学号仅能报名一次</div>
+                    <div class="meta-chip">支持 Web 与手机端</div>
+                    <div class="meta-chip">数据已接入 Supabase</div>
+                    <div class="meta-chip">提交后可在后台导出 CSV</div>
+                </div>
+
+                <form id="signupForm" novalidate>
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="name">姓名</label>
+                            <input id="name" name="name" type="text" maxlength="20" autocomplete="name" placeholder="请输入真实姓名" required>
+                        </div>
+
+                        <div class="field">
+                            <label for="studentId">学号</label>
+                            <input id="studentId" name="studentId" type="text" inputmode="numeric" maxlength="20" autocomplete="off" placeholder="例如：2027xxxxxx" required>
+                        </div>
+                    </div>
+
+                    <div class="insight-box">
+                        <strong>报名说明</strong>
+                        <div class="form-note" style="margin: 0; text-align: left;">
+                            系统会自动检查学号是否已报名。若学号重复，页面会直接提示并阻止再次占位。
+                        </div>
+                    </div>
+
+                    <div class="submit-wrap">
+                        <button class="submit-btn" id="submitBtn" type="submit">
+                            <span class="button-text">提交报名信息</span>
+                            <span class="button-loading">正在提交...</span>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="feedback" id="feedback" aria-live="polite">
+                    报名通道已开放，提交后会实时写入数据库。
+                </div>
+
+                <p class="form-note">若要查看完整名单与导出，请进入后台页并输入本地 `ADMIN_TOKEN`。</p>
+            </article>
+        </section>
+
+        <section class="info-grid">
+            <article class="guide-card" id="guidelines">
+                <h2>Guidelines</h2>
+                <ul>
+                    <li>姓名与学号将作为正式报名信息保存，请使用真实信息提交。</li>
+                    <li>系统以学号做唯一报名校验，避免重复报名和名单冲突。</li>
+                    <li>如需后续导出名单，可直接进入后台页下载 CSV。</li>
+                </ul>
+            </article>
+
+            <article class="guide-card">
+                <h2>Page Notes</h2>
+                <p>
+                    这版视觉参考了你提供的海报式报名页：顶部轻导航、大片春景氛围、下沉式白卡表单和低饱和米色页脚，
+                    整体更接近正式活动征集页而不是工具页。
+                </p>
+            </article>
+
+            <article class="recent-section">
+                <h2>Recent Entries</h2>
+                <p class="recent-text">显示最近 5 条报名记录，姓名做了部分脱敏展示。</p>
+                <div class="recent-list" id="recentList">
+                    <div class="recent-empty">正在读取报名数据...</div>
+                </div>
+            </article>
+        </section>
+
+        <footer class="footer">
+            <div>CUC 2026</div>
+            <div class="footer-copy" id="lastUpdated">最后同步：等待服务响应</div>
+            <div class="footer-links">
+                <a href="#guidelines">Guidelines</a>
+                <a href="/admin">Admin</a>
+                <a href="#signup">Register</a>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        const form = document.getElementById("signupForm");
+        const nameInput = document.getElementById("name");
+        const studentIdInput = document.getElementById("studentId");
+        const submitBtn = document.getElementById("submitBtn");
+        const feedback = document.getElementById("feedback");
+        const signupCount = document.getElementById("signupCount");
+        const recentList = document.getElementById("recentList");
+        const statusBadge = document.getElementById("statusBadge");
+        const databaseStatus = document.getElementById("databaseStatus");
+        const lastUpdated = document.getElementById("lastUpdated");
+
+        function setFeedback(type, message) {
+            feedback.className = "feedback";
+            if (type) {
+                feedback.classList.add(`is-${type}`);
+            }
+            feedback.textContent = message;
+        }
+
+        function setLoading(isLoading) {
+            submitBtn.disabled = isLoading;
+            submitBtn.classList.toggle("is-loading", isLoading);
+        }
+
+        function normalizeName(value) {
+            return value.trim().replace(/\s+/g, "");
+        }
+
+        function normalizeStudentId(value) {
+            return value.trim().replace(/\s+/g, "").toUpperCase();
+        }
+
+        function validateForm(name, studentId) {
+            if (!name) {
+                return "请先填写姓名。";
+            }
+            if (name.length < 2) {
+                return "姓名至少需要 2 个字符。";
+            }
+            if (!studentId) {
+                return "请填写学号。";
+            }
+            if (!/^[0-9A-Z]{6,20}$/.test(studentId)) {
+                return "学号格式应为 6 到 20 位数字或大写字母。";
+            }
+            return "";
+        }
+
+        function formatDisplayTime(isoString) {
+            if (!isoString) {
+                return "刚刚";
+            }
+            const date = new Date(isoString);
+            if (Number.isNaN(date.getTime())) {
+                return isoString;
+            }
+            return new Intl.DateTimeFormat("zh-CN", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit"
+            }).format(date);
+        }
+
+        function renderRecent(items) {
+            recentList.innerHTML = "";
+
+            if (!Array.isArray(items) || items.length === 0) {
+                const empty = document.createElement("div");
+                empty.className = "recent-empty";
+                empty.textContent = "还没有报名记录，第一位同学可以先来占位。";
+                recentList.appendChild(empty);
+                return;
+            }
+
+            items.forEach((item) => {
+                const article = document.createElement("article");
+                article.className = "recent-item";
+
+                const title = document.createElement("strong");
+                title.textContent = item.maskedName || "匿名同学";
+
+                const time = document.createElement("span");
+                time.textContent = `提交时间：${formatDisplayTime(item.createdAt)}`;
+
+                article.appendChild(title);
+                article.appendChild(time);
+                recentList.appendChild(article);
+            });
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch("/api/registrations/stats", {
+                    headers: {
+                        Accept: "application/json"
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error("无法读取报名数据");
+                }
+
+                const payload = await response.json();
+                signupCount.textContent = String(payload.count ?? 0);
+                databaseStatus.textContent = payload.database || "SQLite";
+                statusBadge.textContent = "已连接";
+                lastUpdated.textContent = `最后同步：${formatDisplayTime(payload.generatedAt)}`;
+                renderRecent(payload.recent || []);
+            } catch (error) {
+                signupCount.textContent = "--";
+                statusBadge.textContent = "待启动";
+                databaseStatus.textContent = "未连接";
+                lastUpdated.textContent = "最后同步：服务未连接";
+                renderRecent([]);
+                setFeedback("warn", "页面已加载，但报名服务尚未连接。请通过 Python 服务脚本启动页面。");
+            }
+        }
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const name = normalizeName(nameInput.value);
+            const studentId = normalizeStudentId(studentIdInput.value);
+            const errorMessage = validateForm(name, studentId);
+
+            if (errorMessage) {
+                setFeedback("error", errorMessage);
+                return;
+            }
+
+            setLoading(true);
+            setFeedback("", "正在提交报名信息，请稍候...");
+
+            try {
+                const response = await fetch("/api/registrations", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json"
+                    },
+                    body: JSON.stringify({
+                        name,
+                        studentId
+                    })
+                });
+
+                const payload = await response.json().catch(() => ({}));
+
+                if (response.status === 409) {
+                    setFeedback("warn", payload.message || "该学号已完成报名，请勿重复提交。");
+                    await loadStats();
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(payload.message || "报名失败，请稍后再试。");
+                }
+
+                form.reset();
+                setFeedback("success", payload.message || "报名成功，信息已写入数据库。");
+                nameInput.focus();
+                await loadStats();
+            } catch (error) {
+                setFeedback("error", error.message || "网络异常，请稍后再试。");
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        loadStats();
+    </script>
 </body>
 </html>
